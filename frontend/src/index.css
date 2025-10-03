@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --ring-success: #16A34A;
+    --ring-water: #2E90FA;
+    --ring-activity: #F97316;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+}
+
+body {
+    @apply bg-white text-slate-900;
+    font-family: Inter, system-ui, sans-serif;
+}
+
+.dark body {
+    @apply bg-[#0B1220] text-slate-100;
+}
+
+.container-app {
+    @apply max-w-6xl mx-auto px-4;
+}
+
+/* Card base */
+.card {
+    @apply bg-white dark:bg-[#0F172A] border border-slate-200/70 dark:border-white/10 rounded-xl shadow-sm;
+}
+
+/* Smooth scroll */
+.h-scroll {
+    scroll-behavior: smooth;
+}
