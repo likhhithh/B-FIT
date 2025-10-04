@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Home, BarChart3, Target, User, PlusSquare } from "lucide-react";
+import { Home, BarChart3, Target, User, PlusSquare, Award } from "lucide-react";
 
 export default function BottomNav() {
   const items = [
@@ -8,12 +8,13 @@ export default function BottomNav() {
     { to: "/log", label: "Log", icon: PlusSquare },
     { to: "/analytics", label: "Analytics", icon: BarChart3 },
     { to: "/goals", label: "Goals", icon: Target },
+    { to: "/achievements", label: "Achievements", icon: Award },
     { to: "/profile", label: "Profile", icon: User },
   ];
 
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/90 dark:bg-[#0B1220]/90 border-t border-slate-200/70 dark:border-white/10 backdrop-blur">
-      <div className="grid grid-cols-5">
+      <div className="grid grid-cols-6">
         {items.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}

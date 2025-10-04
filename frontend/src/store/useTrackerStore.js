@@ -1,9 +1,21 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { formatDateKey, todayKey, uid } from "../lib/utils";
+import {
+  formatDateKey,
+  todayKey,
+  uid,
+  estimateDistanceKmFromSteps,
+} from "../lib/utils";
 
 function emptyLog(dateKey) {
-  return { date: dateKey, foods: [], waterMl: 0, workouts: [] };
+  return {
+    date: dateKey,
+    foods: [],
+    waterMl: 0,
+    workouts: [],
+    steps: 0,
+    distanceKm: 0,
+  };
 }
 
 export const useTrackerStore = create(
@@ -18,9 +30,18 @@ export const useTrackerStore = create(
         carbs: 280,
         fat: 70,
         burnCalories: 400,
+        stepsGoal: 8000,
+        distanceKmGoal: 5,
       },
       units: { water: "ml", weight: "kg" },
-      profile: { weightKg: 70 },
+      profile: {
+        name: "",
+        sex: "unspecified", // male|female|unspecified
+        age: 25,
+        heightCm: 170,
+        weightKg: 70,
+        activityLevel: "moderate", // sedentary|light|moderate|active|very_active
+      },
 
       setSelectedDate: (date) => set({ selectedDate: formatDateKey(date) }),
 
@@ -28,7 +49,7 @@ export const useTrackerStore = create(
         const dk = formatDateKey(date ?? new Date());
         const logs = { ...get().logs };
         const log = logs[dk] ?? emptyLog(dk);
-        logs[dk] = { ...log, waterMl: log.waterMl + ml };
+        logs[dk] = { ...log, waterMl: Math.max(0, log.waterMl + ml) };
         set({ logs });
       },
 
@@ -37,7 +58,7 @@ export const useTrackerStore = create(
         const logs = { ...get().logs };
         const log = logs[dk] ?? emptyLog(dk);
         const newItem = {
-          ...item, // expects: name, calories, protein, carbs, fat, fiber?, quantity?
+          ...item,
           id: uid("food_"),
           createdAt: new Date().toISOString(),
         };
@@ -58,7 +79,7 @@ export const useTrackerStore = create(
         const logs = { ...get().logs };
         const log = logs[dk] ?? emptyLog(dk);
         const newItem = {
-          ...item, // expects: type, durationMin?, calories
+          ...item,
           id: uid("wrk_"),
           createdAt: new Date().toISOString(),
         };
@@ -77,6 +98,35 @@ export const useTrackerStore = create(
         set({ logs });
       },
 
+      addSteps: (stepsToAdd, distanceKmOptional, date) => {
+        const dk = formatDateKey(date ?? new Date());
+        const logs = { ...get().logs };
+        const log = logs[dk] ?? emptyLog(dk);
+        const extraDistance =
+          typeof distanceKmOptional === "number"
+            ? Math.max(0, distanceKmOptional)
+            : estimateDistanceKmFromSteps(stepsToAdd);
+        logs[dk] = {
+          ...log,
+          steps: Math.max(0, (log.steps || 0) + Math.max(0, stepsToAdd || 0)),
+          distanceKm: +Math.max(
+            0,
+            (log.distanceKm || 0) + extraDistance
+          ).toFixed(2),
+        };
+        set({ logs });
+      },
+      setStepsAndDistance: (stepsVal, distanceKmVal, date) => {
+        const dk = formatDateKey(date ?? new Date());
+        const logs = { ...get().logs };
+        logs[dk] = {
+          ...(logs[dk] ?? emptyLog(dk)),
+          steps: Math.max(0, Math.floor(stepsVal || 0)),
+          distanceKm: +Math.max(0, distanceKmVal || 0).toFixed(2),
+        };
+        set({ logs });
+      },
+
       setGoals: (g) => set({ goals: { ...get().goals, ...g } }),
       setUnits: (u) => set({ units: { ...get().units, ...u } }),
       setProfile: (p) => set({ profile: { ...get().profile, ...p } }),
@@ -88,9 +138,6 @@ export const useTrackerStore = create(
         set({ logs });
       },
     }),
-    {
-      name: "fittrack-store",
-      storage: createJSONStorage(() => localStorage),
-    }
+    { name: "fittrack-store", storage: createJSONStorage(() => localStorage) }
   )
 );

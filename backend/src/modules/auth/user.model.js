@@ -8,6 +8,28 @@ const GoalsSchema = new mongoose.Schema(
     carbs: { type: Number, default: 280 },
     fat: { type: Number, default: 70 },
     burnCalories: { type: Number, default: 400 },
+    stepsGoal: { type: Number, default: 8000 },
+    distanceKmGoal: { type: Number, default: 5 },
+  },
+  { _id: false }
+);
+
+const ProfileSchema = new mongoose.Schema(
+  {
+    name: { type: String, trim: true, default: "" },
+    sex: {
+      type: String,
+      enum: ["male", "female", "unspecified"],
+      default: "unspecified",
+    },
+    age: { type: Number, default: 25 },
+    heightCm: { type: Number, default: 170 },
+    weightKg: { type: Number, default: 70 },
+    activityLevel: {
+      type: String,
+      enum: ["sedentary", "light", "moderate", "active", "very_active"],
+      default: "moderate",
+    },
   },
   { _id: false }
 );
@@ -23,15 +45,16 @@ const UserSchema = new mongoose.Schema(
       trim: true,
     },
     password: { type: String, required: true, select: false },
-    name: { type: String, trim: true },
-    profile: {
-      weightKg: { type: Number, default: 70 },
-    },
+    profile: { type: ProfileSchema, default: () => ({}) },
     units: {
       water: { type: String, enum: ["ml", "oz"], default: "ml" },
       weight: { type: String, enum: ["kg", "lb"], default: "kg" },
     },
     goals: { type: GoalsSchema, default: () => ({}) },
+
+    // Streaks/badges
+    streakCount: { type: Number, default: 0 },
+    lastLoginDate: { type: String, default: null }, // YYYY-MM-DD
   },
   { timestamps: true }
 );

@@ -9,6 +9,8 @@ async function getOrCreateLog(userId, date) {
       waterMl: 0,
       foods: [],
       workouts: [],
+      steps: 0,
+      distanceKm: 0,
     });
   }
   return log;
@@ -29,7 +31,7 @@ export async function addWater(req, res, next) {
     const { date } = req.params;
     const { amount } = req.body;
     const log = await getOrCreateLog(req.user.id, date);
-    log.waterMl += amount;
+    log.waterMl = Math.max(0, (log.waterMl || 0) + amount);
     await log.save();
     res.json({ success: true, waterMl: log.waterMl });
   } catch (err) {
@@ -80,6 +82,40 @@ export async function removeWorkout(req, res, next) {
     log.workouts.id(entryId)?.remove();
     await log.save();
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Steps: increment (add) or set absolute
+export async function addSteps(req, res, next) {
+  try {
+    const { date } = req.params;
+    const { steps = 0, distanceKm } = req.body;
+    const log = await getOrCreateLog(req.user.id, date);
+    log.steps = Math.max(0, (log.steps || 0) + Math.max(0, steps));
+    if (typeof distanceKm === "number") {
+      log.distanceKm = +Math.max(
+        0,
+        (log.distanceKm || 0) + Math.max(0, distanceKm)
+      ).toFixed(2);
+    }
+    await log.save();
+    res.json({ success: true, steps: log.steps, distanceKm: log.distanceKm });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function setSteps(req, res, next) {
+  try {
+    const { date } = req.params;
+    const { steps = 0, distanceKm = 0 } = req.body;
+    const log = await getOrCreateLog(req.user.id, date);
+    log.steps = Math.max(0, Math.floor(steps));
+    log.distanceKm = +Math.max(0, distanceKm).toFixed(2);
+    await log.save();
+    res.json({ success: true, steps: log.steps, distanceKm: log.distanceKm });
   } catch (err) {
     next(err);
   }

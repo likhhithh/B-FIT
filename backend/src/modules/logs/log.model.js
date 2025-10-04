@@ -19,6 +19,8 @@ const WorkoutEntrySchema = new mongoose.Schema(
     type: String,
     durationMin: Number,
     calories: Number,
+    sets: Number,
+    reps: Number,
   },
   { timestamps: { createdAt: true, updatedAt: false } }
 );
@@ -35,6 +37,10 @@ const LogSchema = new mongoose.Schema(
     waterMl: { type: Number, default: 0 },
     foods: [FoodEntrySchema],
     workouts: [WorkoutEntrySchema],
+
+    // New
+    steps: { type: Number, default: 0 },
+    distanceKm: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

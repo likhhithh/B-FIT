@@ -5,6 +5,7 @@ import foodRoutes from "../modules/foods/foods.routes.js";
 import exerciseRoutes from "../modules/exercises/exercises.routes.js";
 import logRoutes from "../modules/logs/logs.routes.js";
 import goalsRoutes from "../modules/goals/goals.routes.js";
+import achievementsRoutes from "../modules/achievements/achievements.routes.js";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/foods", foodRoutes);
 router.use("/exercises", exerciseRoutes);
 router.use("/logs", logRoutes);
 router.use("/goals", goalsRoutes);
+router.use("/achievements", achievementsRoutes);
 
 export default router;

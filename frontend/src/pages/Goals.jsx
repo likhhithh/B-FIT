@@ -1,117 +1,136 @@
 import React from "react";
-import Card from "../components/ui/Card";
-import Button from "../components/ui/Button";
+import Card from "../components/ui/Card.jsx";
+import Button from "../components/ui/Button.jsx";
+import PageHeader from "../components/layout/PageHeader.jsx";
 import { useTrackerStore } from "../store/useTrackerStore";
 
 export default function Goals() {
   const { goals, setGoals } = useTrackerStore();
-
   return (
-    <div className="grid md:grid-cols-2 gap-4">
-      <Card className="p-4">
-        <div className="font-medium mb-3">Daily Goals</div>
+    <>
+      <PageHeader title="Goals" subtitle="Tune your daily targets." />
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <div className="font-medium mb-3">Daily Goals</div>
 
-        <GoalRow
-          label="Calories"
-          value={goals.calories}
-          min={1200}
-          max={4000}
-          step={50}
-          onChange={(v) => setGoals({ calories: v })}
-        />
-        <GoalRow
-          label="Water (ml)"
-          value={goals.waterMl}
-          min={1000}
-          max={6000}
-          step={100}
-          onChange={(v) => setGoals({ waterMl: v })}
-        />
-
-        <div className="grid grid-cols-4 gap-3 mt-4">
-          <MacroGoal
-            label="Protein (g)"
-            value={goals.protein}
-            onChange={(v) => setGoals({ protein: v })}
-          />
-          <MacroGoal
-            label="Carbs (g)"
-            value={goals.carbs}
-            onChange={(v) => setGoals({ carbs: v })}
-          />
-          <MacroGoal
-            label="Fat (g)"
-            value={goals.fat}
-            onChange={(v) => setGoals({ fat: v })}
-          />
-          <MacroGoal
-            label="Fiber (g)"
-            value={goals.fiber}
-            onChange={(v) => setGoals({ fiber: v })}
-          />
-        </div>
-
-        <div className="mt-4">
           <GoalRow
-            label="Activity (kcal burn)"
-            value={goals.burnCalories}
-            min={0}
-            max={1500}
-            step={10}
-            onChange={(v) => setGoals({ burnCalories: v })}
+            label="Calories"
+            value={goals.calories}
+            min={1200}
+            max={5000}
+            step={50}
+            onChange={(v) => setGoals({ calories: v })}
           />
-        </div>
+          <GoalRow
+            label="Water (ml)"
+            value={goals.waterMl}
+            min={1000}
+            max={8000}
+            step={100}
+            onChange={(v) => setGoals({ waterMl: v })}
+          />
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <Preset
-            name="Fat loss"
-            onClick={() =>
-              setGoals({
-                calories: 1800,
-                protein: 140,
-                carbs: 200,
-                fat: 60,
-                fiber: 30,
-              })
-            }
-          />
-          <Preset
-            name="Maintain"
-            onClick={() =>
-              setGoals({
-                calories: 2200,
-                protein: 130,
-                carbs: 260,
-                fat: 70,
-                fiber: 30,
-              })
-            }
-          />
-          <Preset
-            name="Muscle gain"
-            onClick={() =>
-              setGoals({
-                calories: 2600,
-                protein: 160,
-                carbs: 320,
-                fat: 80,
-                fiber: 30,
-              })
-            }
-          />
-        </div>
-      </Card>
+          <div className="grid grid-cols-3 gap-3 mt-4">
+            <MacroGoal
+              label="Protein (g)"
+              value={goals.protein}
+              onChange={(v) => setGoals({ protein: v })}
+            />
+            <MacroGoal
+              label="Carbs (g)"
+              value={goals.carbs}
+              onChange={(v) => setGoals({ carbs: v })}
+            />
+            <MacroGoal
+              label="Fat (g)"
+              value={goals.fat}
+              onChange={(v) => setGoals({ fat: v })}
+            />
+          </div>
 
-      <Card className="p-4">
-        <div className="font-medium mb-2">Tips</div>
-        <ul className="text-sm list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-300">
-          <li>Set realistic goals you can stick to 5–6 days/week.</li>
-          <li>Protein target helps recovery and satiety.</li>
-          <li>Fiber supports gut health and fullness (25–35g/day).</li>
-          <li>Water goal: 30–35 ml/kg body weight (adjust as needed).</li>
-        </ul>
-      </Card>
-    </div>
+          <div className="mt-4">
+            <GoalRow
+              label="Workout burn (kcal)"
+              value={goals.burnCalories}
+              min={0}
+              max={2000}
+              step={10}
+              onChange={(v) => setGoals({ burnCalories: v })}
+            />
+            <GoalRow
+              label="Steps (per day)"
+              value={goals.stepsGoal}
+              min={1000}
+              max={20000}
+              step={500}
+              onChange={(v) => setGoals({ stepsGoal: v })}
+            />
+            <GoalRow
+              label="Distance (km/day)"
+              value={goals.distanceKmGoal}
+              min={1}
+              max={20}
+              step={0.5}
+              onChange={(v) => setGoals({ distanceKmGoal: v })}
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <Preset
+              name="Fat loss"
+              onClick={() =>
+                setGoals({
+                  calories: 1800,
+                  protein: 140,
+                  carbs: 200,
+                  fat: 60,
+                  burnCalories: 400,
+                  stepsGoal: 9000,
+                  distanceKmGoal: 6,
+                })
+              }
+            />
+            <Preset
+              name="Maintain"
+              onClick={() =>
+                setGoals({
+                  calories: 2200,
+                  protein: 130,
+                  carbs: 260,
+                  fat: 70,
+                  burnCalories: 350,
+                  stepsGoal: 8000,
+                  distanceKmGoal: 5,
+                })
+              }
+            />
+            <Preset
+              name="Muscle gain"
+              onClick={() =>
+                setGoals({
+                  calories: 2600,
+                  protein: 160,
+                  carbs: 320,
+                  fat: 80,
+                  burnCalories: 450,
+                  stepsGoal: 8000,
+                  distanceKmGoal: 5,
+                })
+              }
+            />
+          </div>
+        </Card>
+
+        <Card>
+          <div className="font-medium mb-2">Tips</div>
+          <ul className="text-sm list-disc pl-5 space-y-1 text-slate-600 dark:text-slate-300">
+            <li>Hit protein first — it helps recovery and satiety.</li>
+            <li>Hydration compounds: small adds often beat big chugs.</li>
+            <li>Walking adds up — pair it with calls or breaks.</li>
+          </ul>
+        </Card>
+      </div>
+    </>
   );
 }
 
@@ -132,7 +151,6 @@ function GoalRow({ label, value, min, max, step, onChange }) {
     </div>
   );
 }
-
 function MacroGoal({ label, value, onChange }) {
   return (
     <label className="text-sm">
@@ -146,7 +164,6 @@ function MacroGoal({ label, value, onChange }) {
     </label>
   );
 }
-
 function Preset({ name, onClick }) {
   return (
     <Button variant="outline" onClick={onClick}>

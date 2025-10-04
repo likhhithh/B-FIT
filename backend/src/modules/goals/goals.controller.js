@@ -18,6 +18,8 @@ export async function updateGoals(req, res, next) {
       "carbs",
       "fat",
       "burnCalories",
+      "stepsGoal",
+      "distanceKmGoal",
     ];
     const patch = {};
     for (const k of allowed)

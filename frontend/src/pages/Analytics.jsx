@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import Card from "../components/ui/Card";
+import Card from "../components/ui/Card.jsx";
+import PageHeader from "../components/layout/PageHeader.jsx";
 import {
   LineChart,
   Line,
@@ -20,50 +21,60 @@ export default function Analytics() {
   const last7 = useMemo(() => getRangeData(logs, 7), [logs]);
 
   return (
-    <div className="grid md:grid-cols-2 gap-4">
-      <Card className="p-4">
-        <div className="font-medium mb-2">Calories (7 days)</div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedCalories data={last7} goal={goals.calories} />
-          </ResponsiveContainer>
-        </div>
-      </Card>
-
-      <Card className="p-4">
-        <div className="font-medium mb-2">Water (7 days)</div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={last7}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="waterMl" fill="#2E90FA" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function ComposedCalories({ data }) {
-  return (
-    <LineChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-      <XAxis dataKey="day" />
-      <YAxis />
-      <Tooltip />
-      <Line
-        type="monotone"
-        dataKey="consumed"
-        stroke="#16A34A"
-        name="Consumed"
+    <>
+      <PageHeader
+        title="Analytics"
+        subtitle="See your weekly patterns at a glance."
       />
-      <Line type="monotone" dataKey="burned" stroke="#F97316" name="Burned" />
-      <Line type="monotone" dataKey="net" stroke="#3b82f6" name="Net" />
-    </LineChart>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <div className="font-medium mb-2">Calories (7 days)</div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={last7}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="consumed"
+                  stroke="#16A34A"
+                  name="Consumed"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="burned"
+                  stroke="#F97316"
+                  name="Burned"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="net"
+                  stroke="#3b82f6"
+                  name="Net"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card>
+          <div className="font-medium mb-2">Water (7 days)</div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={last7}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.25} />
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="waterMl" fill="#2E90FA" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </div>
+    </>
   );
 }
 

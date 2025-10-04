@@ -1,17 +1,44 @@
-// MET values from Compendium approximations
+// kind: 'cardio' or 'strength'; MET used for calorie calc
 export const EXERCISES = [
-  { id: "run_6mph", name: "Running (6 mph / 10 min mile)", met: 9.8 },
-  { id: "run_5mph", name: "Running (5 mph / 12 min mile)", met: 8.3 },
-  { id: "walk_3mph", name: "Walking (3 mph)", met: 3.3 },
-  { id: "walk_4mph", name: "Walking (4 mph)", met: 5.0 },
-  { id: "cycle_12_14", name: "Cycling (12–13.9 mph)", met: 8.0 },
-  { id: "cycle_10_12", name: "Cycling (10–11.9 mph)", met: 6.8 },
-  { id: "strength_light", name: "Strength training (light)", met: 3.0 },
-  { id: "strength_vig", name: "Strength training (vigorous)", met: 6.0 },
-  { id: "yoga_hatha", name: "Yoga (Hatha)", met: 2.5 },
-  { id: "swim_mod", name: "Swimming (moderate effort)", met: 6.0 },
-  { id: "swim_vig", name: "Swimming (vigorous effort)", met: 9.8 },
-  { id: "hiit", name: "HIIT (interval training)", met: 10.0 },
-  { id: "basketball", name: "Basketball game", met: 8.0 },
-  { id: "football", name: "Football/Soccer game", met: 8.0 },
+  // Walking/Running
+  { id: "walk-3", name: "Walking (3 mph)", kind: "cardio", MET: 3.3 },
+  { id: "walk-4", name: "Walking (4 mph)", kind: "cardio", MET: 5.0 },
+  { id: "run-5", name: "Running (5 mph)", kind: "cardio", MET: 8.3 },
+  { id: "run-6", name: "Running (6 mph)", kind: "cardio", MET: 9.8 },
+  { id: "run-7", name: "Running (7 mph)", kind: "cardio", MET: 11.0 },
+  // Cycling/Row/Swim
+  { id: "cycle-10-12", name: "Cycling (10–12 mph)", kind: "cardio", MET: 6.0 },
+  { id: "cycle-12-14", name: "Cycling (12–14 mph)", kind: "cardio", MET: 8.0 },
+  { id: "row-moderate", name: "Rowing (moderate)", kind: "cardio", MET: 7.0 },
+  {
+    id: "swim-moderate",
+    name: "Swimming (moderate)",
+    kind: "cardio",
+    MET: 6.0,
+  },
+  { id: "jump-rope", name: "Jump rope", kind: "cardio", MET: 12.3 },
+  // Classes
+  { id: "yoga", name: "Yoga", kind: "cardio", MET: 3.0 },
+  { id: "hiit", name: "HIIT (circuit)", kind: "cardio", MET: 8.0 },
+  // Strength (gym) — sets/reps support
+  {
+    id: "strength-moderate",
+    name: "Strength training (moderate)",
+    kind: "strength",
+    MET: 3.5,
+  },
+  {
+    id: "strength-vigorous",
+    name: "Strength training (vigorous)",
+    kind: "strength",
+    MET: 6.0,
+  },
+  { id: "bench-press", name: "Bench Press", kind: "strength", MET: 3.5 },
+  { id: "squat", name: "Back Squat", kind: "strength", MET: 5.0 },
+  { id: "deadlift", name: "Deadlift", kind: "strength", MET: 5.5 },
+  { id: "ohp", name: "Overhead Press", kind: "strength", MET: 4.0 },
+  { id: "lat-pulldown", name: "Lat Pulldown", kind: "strength", MET: 3.5 },
+  { id: "row-db", name: "Dumbbell Row", kind: "strength", MET: 3.5 },
+  { id: "curl-db", name: "Dumbbell Curl", kind: "strength", MET: 3.0 },
+  { id: "leg-press", name: "Leg Press", kind: "strength", MET: 4.5 },
 ];

@@ -1,15 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import { useTrackerStore } from "../store/useTrackerStore";
 import { useForm } from "react-hook-form";
-import { Utensils, Dumbbell, Droplet, Trash2, Star } from "lucide-react";
+import { Utensils, Dumbbell, Droplet, Trash2, Footprints } from "lucide-react";
 import { FOODS } from "../data/foods";
 import { EXERCISES } from "../data/exercises";
+import { api } from "../lib/api";
+import { estimateDistanceKmFromSteps, caloriesFromWalking } from "../lib/utils";
 
 export default function Log() {
   const [tab, setTab] = useState("food");
-
   return (
     <div className="grid md:grid-cols-2 gap-4">
       <Card className="p-4">
@@ -17,6 +18,7 @@ export default function Log() {
         {tab === "food" && <FoodForm />}
         {tab === "water" && <WaterForm />}
         {tab === "workout" && <WorkoutForm />}
+        {tab === "steps" && <StepsForm />}
       </Card>
       <Card className="p-4">
         <Entries />
@@ -29,7 +31,7 @@ function Tabs({ tab, setTab }) {
   const base =
     "flex-1 py-2 rounded-lg text-sm border border-slate-200/70 dark:border-white/10";
   return (
-    <div className="grid grid-cols-3 gap-2 mb-4">
+    <div className="grid grid-cols-4 gap-2 mb-4">
       <button
         className={`${base} ${
           tab === "food"
@@ -60,23 +62,53 @@ function Tabs({ tab, setTab }) {
       >
         Workout
       </button>
+      <button
+        className={`${base} ${
+          tab === "steps"
+            ? "bg-primary text-white"
+            : "bg-white dark:bg-transparent"
+        }`}
+        onClick={() => setTab("steps")}
+      >
+        Steps
+      </button>
     </div>
   );
 }
 
+// FOOD
 function FoodForm() {
   const { addFood } = useTrackerStore();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(null); // food
+  const [selected, setSelected] = useState(null);
   const [grams, setGrams] = useState(100);
   const [servingLabel, setServingLabel] = useState("100 g");
+  const [results, setResults] = useState([]);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return FOODS.slice(0, 8);
-    return FOODS.filter((f) => f.name.toLowerCase().includes(q)).slice(0, 20);
-  }, [query]);
+  useEffect(() => {
+    let cancel = false;
+    const q = query.trim();
+    if (!open) return;
+    api
+      .get("/foods", { params: { q } })
+      .then((res) => {
+        if (!cancel) setResults(res.data.items || []);
+      })
+      .catch(() => {
+        const local = (
+          q
+            ? FOODS.filter((f) =>
+                f.name.toLowerCase().includes(q.toLowerCase())
+              )
+            : FOODS
+        ).slice(0, 20);
+        if (!cancel) setResults(local);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [query, open]);
 
   const calc = useMemo(() => {
     if (!selected) return null;
@@ -98,11 +130,6 @@ function FoodForm() {
     setGrams(first.grams);
     setOpen(false);
     setQuery(food.name);
-  }
-
-  function pickServing(s) {
-    setServingLabel(s.label);
-    setGrams(s.grams);
   }
 
   return (
@@ -154,7 +181,10 @@ function FoodForm() {
                   const s = selected.servings.find(
                     (x) => x.label === e.target.value
                   );
-                  if (s) pickServing(s);
+                  if (s) {
+                    setServingLabel(s.label);
+                    setGrams(s.grams);
+                  }
                 }}
               >
                 {selected.servings.map((s) => (
@@ -199,7 +229,6 @@ function FoodForm() {
                 fiber: calc.fiber,
                 quantity: servingLabel || `${grams} g`,
               });
-              // reset
               setSelected(null);
               setQuery("");
               setOpen(false);
@@ -214,6 +243,7 @@ function FoodForm() {
   );
 }
 
+// WATER
 function WaterForm() {
   const { addWater } = useTrackerStore();
   return (
@@ -262,34 +292,47 @@ function WaterForm() {
   );
 }
 
+// WORKOUT
 function WorkoutForm() {
   const { addWorkout, profile } = useTrackerStore();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(null); // exercise
+  const [selected, setSelected] = useState(null);
   const [minutes, setMinutes] = useState(30);
+  const [sets, setSets] = useState("");
+  const [reps, setReps] = useState("");
   const weightKg = Math.max(1, Number(profile?.weightKg || 70));
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return EXERCISES.slice(0, 10);
-    return EXERCISES.filter((e) => e.name.toLowerCase().includes(q)).slice(
-      0,
-      20
-    );
-  }, [query]);
+  const [results, setResults] = useState([]);
+
+  useEffect(() => {
+    let cancel = false;
+    const q = query.trim();
+    if (!open) return;
+    api
+      .get("/exercises", { params: { q } })
+      .then((res) => {
+        if (!cancel) setResults(res.data.items || []);
+      })
+      .catch(() => {
+        const local = (
+          q
+            ? EXERCISES.filter((e) =>
+                e.name.toLowerCase().includes(q.toLowerCase())
+              )
+            : EXERCISES
+        ).slice(0, 20);
+        if (!cancel) setResults(local);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [query, open]);
 
   const calories = useMemo(() => {
     if (!selected || minutes <= 0) return 0;
-    // kcal = MET * 3.5 * kg / 200 * min
     return Math.round(((selected.MET * 3.5 * weightKg) / 200) * minutes);
   }, [selected, minutes, weightKg]);
-
-  function pickExercise(ex) {
-    setSelected(ex);
-    setQuery(ex.name);
-    setOpen(false);
-  }
 
   return (
     <div className="grid gap-3">
@@ -311,10 +354,14 @@ function WorkoutForm() {
           <div className="absolute z-20 mt-1 w-full bg-white dark:bg-[#0F172A] border border-slate-200/70 dark:border-white/10 rounded-lg shadow-lg max-h-64 overflow-auto">
             {results.map((ex) => (
               <button
-                key={ex.id}
+                key={ex.id || ex.name}
                 className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 dark:hover:bg-white/5"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pickExercise(ex)}
+                onClick={() => {
+                  setSelected(ex);
+                  setQuery(ex.name);
+                  setOpen(false);
+                }}
               >
                 {ex.name}
               </button>
@@ -323,25 +370,48 @@ function WorkoutForm() {
         )}
       </div>
 
-      <label className="text-sm">
-        <div className="text-slate-600 dark:text-slate-300 mb-1">
-          Duration (min)
-        </div>
-        <input
-          type="number"
-          min={1}
-          className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-transparent"
-          value={minutes}
-          onChange={(e) => setMinutes(Number(e.target.value))}
-        />
-      </label>
+      <div className="grid grid-cols-3 gap-2">
+        <label className="text-sm">
+          <div className="text-slate-600 dark:text-slate-300 mb-1">
+            Duration (min)
+          </div>
+          <input
+            type="number"
+            min={1}
+            className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-transparent"
+            value={minutes}
+            onChange={(e) => setMinutes(Number(e.target.value))}
+          />
+        </label>
+        <label className="text-sm">
+          <div className="text-slate-600 dark:text-slate-300 mb-1">
+            Sets (optional)
+          </div>
+          <input
+            type="number"
+            min={0}
+            className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-transparent"
+            value={sets}
+            onChange={(e) => setSets(e.target.value)}
+          />
+        </label>
+        <label className="text-sm">
+          <div className="text-slate-600 dark:text-slate-300 mb-1">
+            Reps (optional)
+          </div>
+          <input
+            type="number"
+            min={0}
+            className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-transparent"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)}
+          />
+        </label>
+      </div>
 
       <div className="text-sm text-slate-700 dark:text-slate-200">
         Estimated calories burned:{" "}
         <span className="font-semibold tabular-nums">{calories} kcal</span>
-        <span className="ml-2 text-xs text-slate-500">
-          ({weightKg} kg, MET-based)
-        </span>
       </div>
 
       <Button
@@ -351,16 +421,120 @@ function WorkoutForm() {
             type: selected.name,
             durationMin: minutes,
             calories,
+            ...(sets ? { sets: Number(sets) } : {}),
+            ...(reps ? { reps: Number(reps) } : {}),
           });
-          // reset
           setSelected(null);
           setQuery("");
           setMinutes(30);
           setOpen(false);
+          setSets("");
+          setReps("");
         }}
       >
         <Dumbbell className="w-4 h-4 mr-2" /> Add Workout
       </Button>
+    </div>
+  );
+}
+
+// STEPS
+function StepsForm() {
+  const { logs, selectedDate, profile, addSteps } = useTrackerStore();
+  const log = logs[selectedDate] ?? {};
+  const weightKg = Math.max(1, Number(profile?.weightKg || 70));
+
+  const [stepsInput, setStepsInput] = useState(1000);
+  const [distanceInput, setDistanceInput] = useState("");
+
+  const computedDistance = useMemo(() => {
+    if (distanceInput !== "") return Number(distanceInput) || 0;
+    return estimateDistanceKmFromSteps(stepsInput || 0);
+  }, [stepsInput, distanceInput]);
+
+  const estimatedCalories = useMemo(() => {
+    return caloriesFromWalking(weightKg, computedDistance);
+  }, [weightKg, computedDistance]);
+
+  return (
+    <div className="grid gap-3">
+      <div className="grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          onClick={() => addSteps(1000)}
+          className="py-2 rounded-lg bg-slate-100 dark:bg-white/10"
+        >
+          +1,000 steps
+        </button>
+        <button
+          type="button"
+          onClick={() => addSteps(2000)}
+          className="py-2 rounded-lg bg-slate-100 dark:bg-white/10"
+        >
+          +2,000 steps
+        </button>
+        <button
+          type="button"
+          onClick={() => addSteps(5000)}
+          className="py-2 rounded-lg bg-slate-100 dark:bg-white/10"
+        >
+          +5,000 steps
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <label className="text-sm">
+          <div className="text-slate-600 dark:text-slate-300 mb-1">Steps</div>
+          <input
+            type="number"
+            min={0}
+            className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-transparent"
+            value={stepsInput}
+            onChange={(e) => setStepsInput(Number(e.target.value))}
+          />
+        </label>
+        <label className="text-sm">
+          <div className="text-slate-600 dark:text-slate-300 mb-1">
+            Distance (km, optional)
+          </div>
+          <input
+            type="number"
+            step="0.01"
+            min={0}
+            placeholder={estimateDistanceKmFromSteps(stepsInput).toString()}
+            className="w-full h-10 px-3 rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-transparent"
+            value={distanceInput}
+            onChange={(e) => setDistanceInput(e.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="text-sm text-slate-700 dark:text-slate-200">
+        Estimated calories from steps:{" "}
+        <span className="font-semibold tabular-nums">
+          {estimatedCalories} kcal
+        </span>
+        <span className="ml-2 text-xs text-slate-500">
+          ({computedDistance.toFixed(2)} km, {weightKg} kg)
+        </span>
+      </div>
+
+      <Button
+        onClick={() => {
+          const dist = distanceInput !== "" ? Number(distanceInput) : undefined;
+          addSteps(Number(stepsInput || 0), dist);
+          setStepsInput(1000);
+          setDistanceInput("");
+        }}
+      >
+        <Footprints className="w-4 h-4 mr-2" /> Add Steps
+      </Button>
+
+      {/* Current totals */}
+      <div className="mt-2 text-xs text-slate-600 dark:text-slate-400">
+        Today: {Number(log.steps || 0).toLocaleString()} steps •{" "}
+        {Number(log.distanceKm || 0).toFixed(2)} km
+      </div>
     </div>
   );
 }
@@ -373,6 +547,15 @@ function Entries() {
   return (
     <div>
       <div className="font-medium mb-2">Today’s Entries</div>
+      {/* Steps summary */}
+      <div className="mb-3 text-sm rounded-lg px-3 py-2 bg-slate-50 dark:bg-white/5 flex items-center justify-between">
+        <div>Steps</div>
+        <div className="tabular-nums">
+          {(log?.steps || 0).toLocaleString()} •{" "}
+          {(log?.distanceKm || 0).toFixed(2)} km
+        </div>
+      </div>
+
       <div className="space-y-2">
         {log?.foods.map((f) => (
           <div
@@ -383,13 +566,11 @@ function Entries() {
               <div className="font-medium">{f.name}</div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
                 {Math.round(f.protein)}P {Math.round(f.carbs)}C{" "}
-                {Math.round(f.fat)}F • {Math.round(f.fiber || 0)}Fb
+                {Math.round(f.fat)}F{" "}
+                {typeof f.fiber === "number"
+                  ? `• ${Math.round(f.fiber)}Fb`
+                  : ""}
               </div>
-              {f.quantity && (
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  {f.quantity}
-                </div>
-              )}
             </div>
             <div className="flex items-center gap-3">
               <span className="tabular-nums">{f.calories} kcal</span>
@@ -412,7 +593,9 @@ function Entries() {
             <div>
               <div className="font-medium">{w.type}</div>
               <div className="text-xs text-slate-500 dark:text-slate-400">
-                {w.durationMin ? `${w.durationMin} min • ` : ""}Workout
+                {w.durationMin ? `${w.durationMin} min` : ""}
+                {w.sets ? ` • ${w.sets} sets` : ""}
+                {w.reps ? ` x ${w.reps} reps` : ""}
               </div>
             </div>
             <div className="flex items-center gap-3">
